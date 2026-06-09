@@ -51,7 +51,7 @@ export async function createOrder({
           },
         ],
         payment: {
-          method: "checkoutcom-flow",
+          method: "card",
           receiptEmail,
         },
         recipient: {
