@@ -34,7 +34,7 @@ const getActivityTitle = (eventType: string | undefined, isOutgoing: boolean) =>
   if (eventType?.toLowerCase().includes("cancel")) return "Transfer canceled";
   if (eventType?.toLowerCase().includes("fail")) return "Transfer failed";
   if (eventType === "wallets.deposit.onramp") return "Deposit";
-  if (eventType === "wallets.transfer.in") return "Received";
+  if (eventType === "wallets.transfer.in" && !isOutgoing) return "Received";
   return isOutgoing ? "Sent" : "Received";
 };
 
