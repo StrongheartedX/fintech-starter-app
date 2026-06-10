@@ -33,12 +33,7 @@ const getActivityTitle = (eventType: string | undefined, isOutgoing: boolean) =>
   if (eventType?.toLowerCase().includes("yield")) return "Yield";
   if (eventType?.toLowerCase().includes("cancel")) return "Transfer canceled";
   if (eventType?.toLowerCase().includes("fail")) return "Transfer failed";
-  // NOTE: "wallets.deposit.onramp" is not currently emitted by the API.
-  // Kept here for forward-compatibility — when the wallets-transfers API
-  // adds an onramp discriminator we can label real onramps as "Deposit".
   if (eventType === "wallets.deposit.onramp") return "Deposit";
-  // For incoming records where the sender is also us (a self-send that the
-  // API mis-labels as `.in`), let the outgoing branch handle labeling.
   if (eventType === "wallets.transfer.in" && !isOutgoing) return "Received";
   return isOutgoing ? "Sent" : "Received";
 };
