@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { CrossmintEmbeddedCheckout, useCrossmintCheckout } from "@crossmint/client-sdk-react-ui";
 import { CreditCard } from "lucide-react";
-import { AmountBreakdown } from "./AmountBreakdown";
 import { cn } from "@/lib/utils";
 import { createOrder } from "@/server-actions/createOrder";
 import { CopyWrapper } from "../common/CopyWrapper";
@@ -58,6 +57,7 @@ const CHECKOUT_APPEARANCE = {
       font: {
         family: "Inter, sans-serif",
       },
+      borderRadius: "9999px",
       colors: {
         background: primaryColor,
       },
@@ -162,13 +162,6 @@ export function Checkout({
         step !== "options" && "flex items-center justify-center"
       )}
     >
-      {step === "options" && (
-        <AmountBreakdown
-          quote={order?.lineItems[0].quote}
-          inputAmount={amount ? Number.parseFloat(amount) : 0}
-          isAmountValid={isAmountValid}
-        />
-      )}
       {amount && isAmountValid && (
         <div>
           {isCreatingOrder && (
@@ -186,7 +179,6 @@ export function Checkout({
           )}
           {orderId && clientSecret && !isCreatingOrder && (
             <div>
-              {/* Test card info - hide when processing */}
               {step === "options" && (
                 <div className="mb-4 flex w-full items-center gap-2 rounded-lg bg-gray-50 px-3 py-2">
                   <CreditCard className="h-4 w-4 flex-shrink-0 text-gray-500" />

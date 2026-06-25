@@ -5,6 +5,7 @@ import {
   useCrossmintAuth,
 } from "@crossmint/client-sdk-react-ui";
 import { Checkout } from "./Checkout";
+import { AmountBreakdown } from "./AmountBreakdown";
 import { AmountInput } from "../common/AmountInput";
 import { Dialog, DialogContent, DialogTitle, DialogClose } from "../common/Dialog";
 import { useActivityFeed } from "../../hooks/useActivityFeed";
@@ -26,12 +27,17 @@ export function DepositModal({ open, onClose, walletAddress }: DepositModalProps
   const { user } = useCrossmintAuth();
   const receiptEmail = user?.email;
   const [amount, setAmount] = useState("");
+  const [confirmedAmount, setConfirmedAmount] = useState("");
   const { refetch: refetchActivityFeed } = useActivityFeed();
   const { refetch: refetchBalance } = useBalance();
+
+  const isAmountValid = Number(amount) >= MIN_AMOUNT && Number(amount) <= MAX_AMOUNT;
+  const hasConfirmedAmount = confirmedAmount !== "" && isAmountValid;
 
   const restartFlow = () => {
     setStep("options");
     setAmount("");
+    setConfirmedAmount("");
   };
 
   const handleDone = () => {
@@ -49,15 +55,29 @@ export function DepositModal({ open, onClose, walletAddress }: DepositModalProps
     setStep("processing");
   }, []);
 
+  const handleAmountConfirm = () => {
+    if (isAmountValid) {
+      setConfirmedAmount(amount);
+    }
+  };
+
   const showCloseButton = step === "options";
+
+  // Show amount in title once confirmed
+  const titleText =
+    hasConfirmedAmount && step === "options"
+      ? `Deposit $${confirmedAmount}`
+      : step === "processing"
+        ? "Processing..."
+        : "Deposit";
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="flex max-h-[85vh] min-h-[580px] flex-col overflow-y-auto rounded-3xl bg-white sm:max-w-md">
         {showCloseButton && <DialogClose />}
-        <DialogTitle className="text-center">Deposit</DialogTitle>
-        {step === "options" && (
-          <div className="mb-6 flex w-full flex-col items-center">
+        <DialogTitle className="text-center">{titleText}</DialogTitle>
+        {step === "options" && !hasConfirmedAmount && (
+          <div className="mb-6 flex w-full flex-col items-center gap-4">
             <AmountInput amount={amount} onChange={setAmount} />
             {Number(amount) > 0 && Number(amount) < MIN_AMOUNT && (
               <div className="mt-1 text-center text-red-600">
@@ -69,14 +89,29 @@ export function DepositModal({ open, onClose, walletAddress }: DepositModalProps
                 Transaction amount exceeds the maximum allowed deposit limit of ${MAX_AMOUNT}
               </div>
             )}
+            {isAmountValid && (
+              <>
+                <AmountBreakdown inputAmount={Number(amount)} isAmountValid={isAmountValid} />
+                <button
+                  type="button"
+                  onClick={handleAmountConfirm}
+                  className="bg-primary hover:bg-primary-hover text-primary-foreground w-full rounded-full px-6 py-3 text-sm font-medium transition"
+                >
+                  Continue with ${amount}
+                </button>
+              </>
+            )}
           </div>
+        )}
+        {step === "options" && hasConfirmedAmount && (
+          <AmountBreakdown inputAmount={Number(confirmedAmount)} isAmountValid={true} />
         )}
         <div className="flex w-full flex-grow flex-col">
           <CrossmintProvider apiKey={CLIENT_API_KEY_CONSOLE_FUND as string}>
             <CrossmintCheckoutProvider>
               <Checkout
-                amount={amount}
-                isAmountValid={Number(amount) >= MIN_AMOUNT && Number(amount) <= MAX_AMOUNT}
+                amount={confirmedAmount}
+                isAmountValid={hasConfirmedAmount}
                 walletAddress={walletAddress}
                 onPaymentCompleted={handlePaymentCompleted}
                 receiptEmail={receiptEmail || ""}
